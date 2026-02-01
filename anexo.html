@@ -1,64 +1,241 @@
-<!-- anexo.html -->
-<div id="anexoInterface" style="background:#fdf7e3; border:1px solid #e0d7b3; border-radius:12px; padding:15px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
-  <h3 style="color:#0056b3; margin-top:0; display:flex; align-items:center; gap:8px;">
-    📎 Adicionar Anexo
-  </h3>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adicionar Anexo</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <style>
+        /* Estilo base */
+        #anexoInterface {
+            background: #fdf7e3;
+            border: 1px solid #e0d7b3;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
 
-  <p style="font-style:italic; color:#555; margin-bottom:12px;">
-    Escolha como deseja adicionar o anexo:
-  </p>
+        h3 {
+            color: #0056b3;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 18px;
+        }
 
-  <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px;">
-    <button type="button" onclick="mostrarAnexoTexto()" style="flex:1; padding:8px; background:#0d6efd; color:white; border:none; border-radius:6px; cursor:pointer;">
-      📄 Texto / Resumo
-    </button>
-    <button type="button" onclick="mostrarAnexoChatGPT()" style="flex:1; padding:8px; background:#ff7f32; color:white; border:none; border-radius:6px; cursor:pointer;">
-      🤖 Gerar no ChatGPT
-    </button>
-    <button type="button" onclick="mostrarAnexoFoto()" style="flex:1; padding:8px; background:#198754; color:white; border:none; border-radius:6px; cursor:pointer;">
-      📷 Foto do Livro
-    </button>
-  </div>
+        p {
+            font-style: italic;
+            color: #555;
+            margin-bottom: 12px;
+        }
 
-  <div id="anexoTexto" style="display:none; margin-bottom:12px;">
-    <textarea placeholder="Escreva aqui o resumo ou TPC..." style="width:100%; min-height:100px; border:1px solid #ccc; border-radius:8px; padding:10px;"></textarea>
-  </div>
+        .flex {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
 
-  <div id="anexoChatGPT" style="display:none; margin-bottom:12px;">
-    <p style="font-size:14px; color:#444;">O tema da aula será usado para gerar resumo no ChatGPT.</p>
-    <button type="button" onclick="abrirChatGPT()" style="padding:6px 12px; background:#ff7f32; color:white; border:none; border-radius:6px; cursor:pointer;">
-      🔗 Abrir ChatGPT com Prompt
-    </button>
-    <textarea placeholder="Cole aqui o resumo gerado no ChatGPT..." style="width:100%; min-height:100px; border:1px solid #ccc; border-radius:8px; padding:10px; margin-top:10px;"></textarea>
-  </div>
+        .flex button {
+            flex: 1;
+            padding: 8px;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
 
-  <div id="anexoFoto" style="display:none; margin-bottom:12px;">
-    <p>Escolha uma opção:</p>
-    <button type="button" onclick="document.getElementById('fotoCamera').click()" style="padding:6px 12px; background:#0d6efd; color:white; border:none; border-radius:6px; margin-right:8px;">
-      📷 Abrir Câmera
-    </button>
-    <button type="button" onclick="document.getElementById('fotoGaleria').click()" style="padding:6px 12px; background:#198754; color:white; border:none; border-radius:6px;">
-      🖼️ Selecionar Foto
-    </button>
+        /* Estilos dos botões */
+        .flex button:nth-child(1) {
+            background: #0d6efd;
+        }
 
-    <input id="fotoCamera" type="file" accept="image/*" capture="environment" style="display:none;" onchange="carregarFoto(event)">
-    <input id="fotoGaleria" type="file" accept="image/*" style="display:none;" onchange="carregarFoto(event)">
+        .flex button:nth-child(2) {
+            background: #ff7f32;
+        }
 
-    <div id="previewFoto" style="margin-top:15px; text-align:center;"></div>
-    <button type="button" onclick="salvarFotoPreview()" style="margin-top:10px; padding:6px 12px; background:#198754; color:white; border:none; border-radius:6px; cursor:pointer;">
-      💾 Salvar Foto no Preview
-    </button>
-  </div>
+        .flex button:nth-child(3) {
+            background: #198754;
+        }
 
-  <div style="margin-top:10px; display:flex; gap:8px;">
-    <button type="button" onclick="salvarAnexo()" style="padding:8px 12px; background:#198754; color:white; border:none; border-radius:6px; cursor:pointer;">
-      💾 Salvar Anexo
-    </button>
-    <button type="button" onclick="fecharAnexo()" style="padding:8px 12px; background:#6c757d; color:white; border:none; border-radius:6px; cursor:pointer;">
-      🔙 Cancelar
-    </button>
-  </div>
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .flex-wrap {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .flex-wrap button {
+            flex: 1;
+        }
+
+        /* Para telas menores */
+        @media (max-width: 768px) {
+            #anexoInterface {
+                padding: 10px;
+            }
+
+            h3 {
+                font-size: 16px;
+            }
+
+            .flex {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .flex button {
+                width: 100%;
+            }
+
+            .flex-wrap {
+                flex-direction: column;
+            }
+
+            .flex-wrap button {
+                width: 100%;
+            }
+
+            .flex-wrap textarea {
+                width: 100%;
+            }
+
+            .flex-wrap button {
+                padding: 10px 15px;
+            }
+        }
+
+        /* Para dispositivos pequenos */
+        @media (max-width: 480px) {
+            .flex button {
+                padding: 10px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="anexoInterface">
+    <h3>
+        📎 Adicionar Anexo
+    </h3>
+    <p>Escolha como deseja adicionar o anexo:</p>
+
+    <div class="flex">
+        <button type="button" onclick="mostrarAnexoTexto()">
+            📄 Texto / Resumo
+        </button>
+        <button type="button" onclick="mostrarAnexoChatGPT()">
+            🤖 Gerar no ChatGPT
+        </button>
+        <button type="button" onclick="mostrarAnexoFoto()">
+            📷 Foto do Livro
+        </button>
+    </div>
+
+    <!-- Anexo de Texto -->
+    <div id="anexoTexto" style="display:none; margin-bottom:12px;">
+        <textarea placeholder="Escreva aqui o resumo ou TPC..."></textarea>
+    </div>
+
+    <!-- Anexo de ChatGPT -->
+    <div id="anexoChatGPT" style="display:none; margin-bottom:12px;">
+        <p style="font-size:14px; color:#444;">O tema da aula será usado para gerar resumo no ChatGPT.</p>
+        <button type="button" onclick="abrirChatGPT()">🔗 Abrir ChatGPT com Prompt</button>
+        <textarea placeholder="Cole aqui o resumo gerado no ChatGPT..." style="margin-top:10px;"></textarea>
+    </div>
+
+    <!-- Anexo de Foto -->
+    <div id="anexoFoto" style="display:none; margin-bottom:12px;">
+        <p>Escolha uma opção:</p>
+        <button type="button" onclick="document.getElementById('fotoCamera').click()">
+            📷 Abrir Câmera
+        </button>
+        <button type="button" onclick="document.getElementById('fotoGaleria').click()">
+            🖼️ Selecionar Foto
+        </button>
+
+        <input id="fotoCamera" type="file" accept="image/*" capture="environment" style="display:none;" onchange="carregarFoto(event)">
+        <input id="fotoGaleria" type="file" accept="image/*" style="display:none;" onchange="carregarFoto(event)">
+
+        <div id="previewFoto" style="margin-top:15px; text-align:center;"></div>
+        <button type="button" onclick="salvarFotoPreview()">💾 Salvar Foto no Preview</button>
+    </div>
+
+    <!-- Botões de Salvar e Cancelar -->
+    <div class="flex-wrap">
+        <button type="button" onclick="salvarAnexo()">💾 Salvar Anexo</button>
+        <button type="button" onclick="fecharAnexo()">🔙 Cancelar</button>
+    </div>
 </div>
 
-<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script>
+    // Função para exibir o campo de texto
+    function mostrarAnexoTexto() {
+        document.getElementById('anexoTexto').style.display = 'block';
+        document.getElementById('anexoChatGPT').style.display = 'none';
+        document.getElementById('anexoFoto').style.display = 'none';
+    }
+
+    // Função para exibir o campo de ChatGPT
+    function mostrarAnexoChatGPT() {
+        document.getElementById('anexoTexto').style.display = 'none';
+        document.getElementById('anexoChatGPT').style.display = 'block';
+        document.getElementById('anexoFoto').style.display = 'none';
+    }
+
+    // Função para exibir o campo de Foto
+    function mostrarAnexoFoto() {
+        document.getElementById('anexoTexto').style.display = 'none';
+        document.getElementById('anexoChatGPT').style.display = 'none';
+        document.getElementById('anexoFoto').style.display = 'block';
+    }
+
+    // Função para abrir o ChatGPT (exemplo básico)
+    function abrirChatGPT() {
+        window.open('https://chat.openai.com/', '_blank');
+    }
+
+    // Função para carregar foto e mostrar prévia
+    function carregarFoto(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = new Image();
+                img.src = e.target.result;
+                img.style.maxWidth = '100%';
+                document.getElementById('previewFoto').innerHTML = '';
+                document.getElementById('previewFoto').appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // Função para salvar a foto (aqui apenas para exemplo)
+    function salvarFotoPreview() {
+        alert("Foto salva no preview!");
+    }
+
+    // Função para salvar o anexo (apenas exemplo de funcionamento)
+    function salvarAnexo() {
+        alert("Anexo salvo!");
+    }
+
+    // Função para fechar a interface de anexo
+    function fecharAnexo() {
+        alert("Anexo cancelado!");
+    }
+</script>
+
+</body>
+</html>
