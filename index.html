@@ -165,7 +165,7 @@
           </select>
           <input type="text" name="turma" placeholder="Turma" required />
           <input type="number" name="licao" placeholder="Lição nº" min="1" step="1" />
-          <select name="duracao" required> <option value="">Selecciona a duracao da aula</option> <option value="40">40 minutos</option> <option value="45">45 minutos</option> <option value="80">80 minutos</option> <option value="90">90 minutos</option></select>
+          <select name="duracao" required> <option value="">Selecciona a duracao da aula</option> <option value="40">40 minutos</option> <option value="45">45 minutos</option> <option value="60">60 minutos</option> <option value="80">80 minutos</option> <option value="90">90 minutos</option></select>
           <select name="periodo" required>
             <option value="">Selecione o período</option>
             <option value="Manhã">Manhã</option>
@@ -673,46 +673,53 @@ function voltarAoFormulario() {
   document.getElementById('btnVoltarFormulario').style.display = 'none';
 }
 function irParaPagamento() {
-  // Substituir selects por apenas o texto do método escolhido (só na exportação)
+
+  // 🔹 ESCONDE o editor do anexo (evita duplicação no PDF)
+  const editorAnexo = document.getElementById('anexoContainerContent');
+  if (editorAnexo) editorAnexo.style.display = 'none';
+
+  // 🔹 GARANTE que apenas o preview final aparece
+  const previewAnexo = document.getElementById('anexoPreview');
+  if (previewAnexo && anexoSalvo) {
+    previewAnexo.style.display = 'block';
+  }
+
+  // 🔹 Remove selects e mantém só texto (como já tinhas)
   const selects = document.querySelectorAll('#tabelaPlano select.metodoSelect');
   selects.forEach(sel => {
-    const td = sel.parentElement;
-    const texto = sel.value || "—";
-    td.innerHTML = texto; // remove o select e mantém só o método escolhido
+    sel.parentElement.innerHTML = sel.value || "—";
   });
 
-  // Salva todos os dados necessários, incluindo o HTML completo do preview!
+  // 🔹 Salva HTML limpo
   const planoData = {
-    escola: document.forms['planoForm'].escola.value,
-    alfabetizador: document.forms['planoForm'].alfabetizador.value,
-    disciplina: document.forms['planoForm'].disciplina.value,
-    unidade: document.forms['planoForm'].unidade.value,
-    tema: document.forms['planoForm'].tema.value,
-    tipo: document.forms['planoForm'].tipo.value,
-    classe: document.forms['planoForm'].classe.value,
-    turma: document.forms['planoForm'].turma.value,
-    licao: document.forms['planoForm'].licao.value,
-    duracao: document.forms['planoForm'].duracao.value,
-    periodo: document.forms['planoForm'].periodo.value,
-    data: document.forms['planoForm'].data.value,
-    materiais: materiais,
-    objetivos: document.getElementById('objetivosCampo').value,
-    tabela: document.getElementById('tabelaPlano').outerHTML,
-    anexoTipo: anexoSalvo ? anexoSalvo.tipo : null,
-    anexoImagem: (anexoSalvo && anexoSalvo.tipo === 'imagem') ? anexoSalvo.data : null,
-    anexoTexto: (anexoSalvo && anexoSalvo.tipo === 'texto') ? anexoSalvo.data : "",
-    // ESSENCIAL: salva o HTML completo do preview!
-    html: document.getElementById('planoFinal').innerHTML
+    html: document.getElementById('planoFinal').innerHTML,
+    anexoSalvo: anexoSalvo
   };
-console.log('Salvando planoData para pagamento — anexoTipo:', planoData.anexoTipo, 'hasImage?', !!planoData.anexoImagem, 'hasText?', !!planoData.anexoTexto);
-sessionStorage.setItem("planoData", JSON.stringify(planoData));
-  // Salva os dados para o pagamento.html recuperar
-  sessionStorage.setItem("planoData", JSON.stringify(planoData));
 
-  // Vai para a tela de pagamento
+  sessionStorage.setItem("planoData", JSON.stringify(planoData));
   window.location.href = "n1.html";
 }
 </script>
+
+<script>
+function abrirAnexo() {
+  const container = document.getElementById('anexoContainerContent');
+
+  if (!container) {
+    alert('Erro ao carregar o anexo.');
+    return;
+  }
+
+  // alterna visibilidade
+  if (container.style.display === 'none' || container.style.display === '') {
+    container.style.display = 'block';
+    container.scrollIntoView({ behavior: 'smooth' });
+  } else {
+    container.style.display = 'none';
+  }
+}
+</script>
+
 <!-- container que receberá o anexo.html (fica escondido até abrir) -->
 <div id="anexoContainerContent" style="display:none; margin-top:15px;"></div>
 
