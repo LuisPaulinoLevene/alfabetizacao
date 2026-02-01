@@ -17,7 +17,7 @@
   </style>
 </head>
 <body>
-  <header>Plano automatico</header>
+  <header>Plano automático</header>
   <main>
     <h2>Seu plano está pronto</h2>
     <button class="btn-baixar" id="btnBaixar">📥 Baixar PDF</button>
@@ -184,7 +184,7 @@
       }
 
       // Anexo
-      (function renderAnexo() {
+      function renderAnexo() {
         const anexType = planoData.anexoTipo || (planoData.anexoSalvo && planoData.anexoSalvo.tipo);
         const anexImg = planoData.anexoImagem || (planoData.anexoSalvo && planoData.anexoSalvo.tipo === 'imagem' && planoData.anexoSalvo.data);
         const anexTxt = planoData.anexoTexto || (planoData.anexoSalvo && planoData.anexoSalvo.tipo === 'texto' && planoData.anexoSalvo.data);
@@ -196,6 +196,7 @@
         const largura = pageW - 2 * margemX;
         let alturaBox = (anexType === 'imagem') ? 100 : 40;
 
+        // Verificar se o anexo é de texto
         if (anexTxt && anexType === 'texto') {
           const lines = doc.splitTextToSize(anexTxt, largura - 10);
           alturaBox = Math.max(40, Math.min(200, 10 + lines.length * 6));
@@ -203,17 +204,21 @@
 
         let posY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 8 : 20;
         const pageHeight = doc.internal.pageSize.getHeight();
+
+        // Se não houver espaço suficiente na página, adicionar uma nova
         if (posY + alturaBox + 10 > pageHeight) {
           doc.addPage();
           posY = 15;
         }
 
-        doc.setDrawColor(0,0,0);
+        // Desenhar a caixa do anexo
+        doc.setDrawColor(0, 0, 0);
         doc.rect(margemX, posY, largura, alturaBox);
         doc.setFont("Times", "bold");
         doc.setFontSize(12);
         doc.text("ANEXO", margemX + largura / 2, posY + 8, { align: "center" });
 
+        // Adicionar conteúdo de imagem
         if (anexType === "imagem" && anexImg) {
           let fmt = 'PNG';
           try {
@@ -228,29 +233,22 @@
           }
         } else if (anexType === "texto" && anexTxt) {
           doc.setFont("Times", "normal");
-          if (posY + 30 > pageHeight) { doc.addPage(); posY = 15; }
-          doc.text("ANEXO", margemX + largura / 2, posY, { align: "center" });
-          doc.autoTable({
-            startY: posY + 5,
-            head: [],
-            body: [[anexTxt]],
-            margin: { left: margemX, right: margemX },
-            styles: {
-              font: 'times',
-              fontSize: 12,
-              halign: 'left',
-              valign: 'top',
-              overflow: 'linebreak',
-              cellPadding: 5,
-              textColor: [0, 0, 0]
-            },
-            tableLineWidth: 0.5,
-            tableLineColor: [0, 0, 0],
-            theme: 'grid',
-            columnStyles: { 0: { cellWidth: 'auto' } },
-          });
+          // Quebra o texto para se ajustar ao layout
+          const lines = doc.splitTextToSize(anexTxt, largura - 10);
+          const alturaTexto = lines.length * 6;
+
+          // Se não houver espaço suficiente, adicionar nova página
+          if (posY + alturaTexto + 10 > pageHeight) {
+            doc.addPage();
+            posY = 15;
+          }
+
+          // Adicionar texto do anexo diretamente
+          doc.text(lines, margemX + 5, posY + 12);
         }
-      })();
+      }
+
+      renderAnexo();
 
       const disciplina = planoData.disciplina || "";
       const classe = planoData.classe || "";
