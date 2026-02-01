@@ -194,31 +194,41 @@
         const margemX = 7;
         const pageW = doc.internal.pageSize.getWidth();
         const largura = pageW - 2 * margemX;
+
         let alturaBox = (anexType === 'imagem') ? 100 : 40;
 
-        // Verificar se o anexo é de texto
         if (anexTxt && anexType === 'texto') {
           const lines = doc.splitTextToSize(anexTxt, largura - 10);
           alturaBox = Math.max(40, Math.min(200, 10 + lines.length * 6));
         }
 
-        let posY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 8 : 20;
+        let posY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 8 : 20;  // Ajustar a posição do anexo
         const pageHeight = doc.internal.pageSize.getHeight();
 
-        // Se não houver espaço suficiente na página, adicionar uma nova
+        // Flag para verificar se é a primeira página
+        let isFirstPage = true;
+
+        // Função para adicionar a palavra "ANEXO"
+        function adicionarTituloAnexo() {
+          if (isFirstPage) {
+            doc.setFont("Times", "bold");
+            doc.setFontSize(12);
+            doc.text("ANEXO", pageW / 2, posY, { align: "center" });
+            posY += 10; // Ajusta o Y após o título "ANEXO"
+            isFirstPage = false;  // Após a primeira página, a flag muda para false
+          }
+        }
+
+        // Se precisar adicionar uma nova página, já inicia com "ANEXO"
         if (posY + alturaBox + 10 > pageHeight) {
           doc.addPage();
           posY = 15;
+          adicionarTituloAnexo();
+        } else {
+          adicionarTituloAnexo(); // Se não precisar de nova página, adiciona diretamente
         }
 
-        // Desenhar a caixa do anexo
-        doc.setDrawColor(0, 0, 0);
-        doc.rect(margemX, posY, largura, alturaBox);
-        doc.setFont("Times", "bold");
-        doc.setFontSize(12);
-        doc.text("ANEXO", margemX + largura / 2, posY + 8, { align: "center" });
-
-        // Adicionar conteúdo de imagem
+        // Se for imagem
         if (anexType === "imagem" && anexImg) {
           let fmt = 'PNG';
           try {
@@ -232,21 +242,25 @@
             doc.text("Erro ao inserir imagem do anexo.", margemX + 5, posY + 18);
           }
         } else if (anexType === "texto" && anexTxt) {
+          // Se for texto, apenas coloca o texto no PDF sem retângulo
           doc.setFont("Times", "normal");
-          // Quebra o texto para se ajustar ao layout
-          const lines = doc.splitTextToSize(anexTxt, largura - 10);
-          const alturaTexto = lines.length * 6;
+          let textoQuebrado = doc.splitTextToSize(anexTxt, largura - 10);
+          let yTexto = posY + 12;
 
-          // Se não houver espaço suficiente, adicionar nova página
-          if (posY + alturaTexto + 10 > pageHeight) {
-            doc.addPage();
-            posY = 15;
-          }
-
-          // Adicionar texto do anexo diretamente
-          doc.text(lines, margemX + 5, posY + 12);
+          // Loop para adicionar as linhas do texto
+          textoQuebrado.forEach(line => {
+            // Verifica se o texto vai ultrapassar o fim da página
+            if (yTexto + 6 > pageHeight - 10) {
+              doc.addPage(); // Adiciona uma nova página
+              yTexto = 15; // Reinicia a posição no topo da nova página
+              adicionarTituloAnexo(); // Adiciona "ANEXO" na primeira página apenas
+            }
+            doc.text(line, margemX + 5, yTexto);
+            yTexto += 6;
+          });
         }
       }
+
 
       renderAnexo();
 
